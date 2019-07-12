@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Getting Started: Handling Form Submission</title>
+
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+</head>
+
+
+<body>
+
+<script  type="text/javascript" src="yahoo.js"></script>
+<script  type="text/javascript" src="event.js"></script>
+<script  type="text/javascript" src="connection.js"></script>
+<script  type="text/javascript" src="yahoo-min.js"></script>
+<script  type="text/javascript" src="json-min.js"></script>
+<script  type="text/javascript" src="main.js"></script>
+
+  <style>
+   input {   
+    float: right;  
+    border: 1px solid black;    
+   }
+    form  {
+    width: 350px;
+   }
+   
+  </style>
+  
+<h1>Сведения о системе:</h1>
+
+<p th:text="'Текущая дата: '+${greeting.curDate}"> </p>
+
+<p th:text="'Имя компьютера: '+${greeting.hostName}"> </p>
+
+<p th:text="'Свободная память Java: ' + ${greeting.freeMemory}">
+</p>
+
+<p th:text="'Всего памяти Java: ' + ${greeting.totalMemory}">
+</p>
+
+<h1>Новая задача:</h1>
+
+<form action="#" th:action="@{/greeting}" th:object="${greeting}" method="post">
+<!--<form action="" id="add_to_tab" method="post" onsubmit="addRow();return false;">    onsubmit="addRow();return false;" -->
+<fieldset>
+  <p>Номер задачи: <input required placeholder="Номер задания" pattern="[0-9]{1,5}" id="task_num" th:field="*{id}" type="number" min="1" max="100" step="1"></p>
+
+  <p>Описание задачи:</p>
+
+  <p><textarea id="task_txt" th:field="*{content}" required placeholder="Содержание задания" rows="6" cols="40"></textarea></p>  
+
+  <p>Срок выполнения задачи: <input id="task_date" type="date" required  placeholder="Срок выполнения" th:field="*{taskDate}" min="2018-01-01" max="2030-01-01"></p>
+  <p>
+  <button id="add_task_btn" type="button" onclick="addRow()">Добавить задачу</button>
+  <button id="save_task_btn" type="button" onclick="changeRow()" style="display: none;">Сохранить</button>
+  <button id="cancel_task_btn" type="button" onclick="setAddMode()" style="display: none;">Отмена</button>
+  </p>  
+  </fieldset>
+</form>
+
+<h1>Список задач:</h1>
+
+<table id="task_list" border="1">
+    <tr>
+      <th>Номер задачи</th>
+      <th>Описание задачи</th>
+      <th>Срок выполнения</th>
+      <th colspan="2">Действие</th>
+    </tr>
+
+    <tr th:each="tableDB : ${greeting.tableDB}">
+      <td th:text="${tableDB.taskNum}">...</td>
+      <td th:text="${tableDB.taskContent}">...</td>
+      <td th:text="${tableDB.recDate}">...</td>
+      <td>
+      <button th:id="'edit_rec_btn_'+${tableDB.taskNum}" th:value="${tableDB.taskNum}" type="button" onclick="EditRecord()">Изменить</button>
+	  </td>
+	  <td>
+      <button th:id="'del_rec_btn_'+${tableDB.taskNum}" th:value="${tableDB.taskNum}" type="button">Удалить</button>
+      </td>
+    </tr>
+    <tbody>
+    </tbody>
+
+</table>
+<!--
+<P>Режимы редактирования</p>  
+<button id="enable_add_btn" type="button" onclick="setAddMode()">Добавление</button>
+<button id="enadle_edit_btn" type="button" onclick="setEditMode()">Редактирование</button>
+<button id="send_post_btn" type="button" onclick="sendAsyncPost("")">Послать сообщение</button>-->
+</body>
+</html>

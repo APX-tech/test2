@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>Getting Started: Handling Form Submission</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+	<h1>Сведения о системе</h1>
+Date: posdate<br>
+HostName: poshostname<br>
+Free memory: posfreememory<br>
+Total memory: postotalmemory<br>
+
+	<h1>Сведения о тестовых заданиях:</h1>
+<table border=1>
+<tr>
+<td>Номер задания</td><td>Задание</td><td>Срок выполнения</td><td>Действие</td>
+</tr>
+<tr>
+<td>-</td><td>-</td><td>-</td><td>-</td>
+</tr>
+</table>
+
+    <p th:text="'id: ' + ${greeting.id}" />
+    <p th:text="'content: ' + ${greeting.content}" />
+    <a href="/greeting">Submit another message</a>
+</body>
+</html>
