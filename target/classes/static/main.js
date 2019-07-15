@@ -38,6 +38,7 @@ function setAddMode(){
         }
      }
      document.getElementById('task_num').disabled=false;
+     clearInputDataInForm();   //Очистка данных формы
 }
 
 //Передать данные на сервер (ассинхронно)
@@ -52,43 +53,64 @@ function sendAsyncPost(sURL,newTaskNum, newTaskTxt, newTaskDate) {
 	        div.innerHTML += "PHP response: " + o.responseText; 
 	        div.innerHTML += "Argument object: " + o.argument; 
 	    }
-	};
+	}
     //Обработчик ошибки
     var handleFailure = function () {
         alert("Ошибка при попытке передачи данных на сервер");
-    };
+    }
     //Возвращаемые параметры
     var callback ={
 	    success:handleSuccess,
 	    failure: handleFailure,
 	    argument: ['foo','bar']
-	}; 
-    //строка-адрес
-    //var sURL = 'addtodb';
-    var strJSON = '{"id":"'+newTaskNum+'","content":"'+newTaskTxt+'","taskDate":"'+newTaskDate+'"}';
+	}
     //Формирование строки с передаваемыми данными
     var postData="id="+newTaskNum+"&content="+newTaskTxt+"&taskDate="+newTaskDate;
     //Отправка POST на сервер
     var request = YAHOO.util.Connect.asyncRequest('POST', sURL, callback, postData);
 }
 
-//Изменение строки в таблице
+//Очистка формы от входных данных
+function clearInputDataInForm(){
+    document.getElementById('task_num').value=0;
+    document.getElementById('task_txt').value="";
+    document.getElementById('task_date').value=null;
+}
+
+//Изменение (замена) строки в таблице данными из формы
+function dataNotCorrect(taskNum, taskTxt, taskDate){
+    res=false;
+    sendMsg="Следующие параметры нового задания не корректны:";
+    //Проверка значений на корректность
+    if (taskNum<1){
+        sendMsg=sendMsg+"\n-номер задания";
+        res=true;
+    }
+    //Проверка значений на корректность
+    if (taskTxt.length<1){
+        sendMsg=sendMsg+"\n-текст задания";
+        res=true;
+    }
+    //Проверка значения даты на корректность
+    if ((taskDate.length<5)){
+        sendMsg=sendMsg+"\n-дата задания";
+        res=true;
+    }
+    if (res){
+        sendMsg=sendMsg+"\nДобавление данного задания не возможно.";
+        alert(sendMsg);
+    }
+    return res;
+}
+
+//Изменение (замена) строки в таблице данными из формы
 function changeRow(){
     //Считываем новые значения с формы
     newTaskNum = document.getElementById('task_num').value;
     newTaskTxt = document.getElementById('task_txt').value;
     newTaskDate = document.getElementById('task_date').value;
-    var now=Date.now();
     //Проверка значений на корректность
-    if (newTaskNum<1){
-        alert("Параметры нового задания не корректны (см. номер задания). Добавление не возможно.");
-        return false;
-    }
-    //Проверка значений на корректность
-    if (newTaskTxt.length<5){
-        alert("Параметры нового задания не корректны (см. текст задания). Добавление не возможно.");
-        return false;
-    }
+    if (dataNotCorrect(newTaskNum, newTaskTxt, newTaskDate)){return false}
     //Поиск иходного задания
     var allrows = document.getElementsByTagName("tr");
     for (var i = 0; i < allrows.length; ++i) {
@@ -109,8 +131,8 @@ function addRow(){
     //Считываем новые значения с формы
     newTaskNum = document.getElementById('task_num').value;
     newTaskTxt = document.getElementById('task_txt').value;
-    newTaskDate = document.getElementById('task_date').value;
-    var now=Date.now();
+    newTaskDate=document.getElementById('task_date').value;
+
     //Проверка значений на уникальность номера, только для режима добавления
     var allcells = document.getElementsByTagName("td");
     for (var i = 0; i < allcells.length; ++i) {
@@ -123,20 +145,8 @@ function addRow(){
     }
 
     //Проверка значений на корректность
-    if (newTaskNum<1){
-        alert("Параметры нового задания не корректны (см. номер задания). Добавление не возможно.");
-        return false;
-    }
-    //Проверка значений на корректность
-    if (newTaskTxt.length<5){
-        alert("Параметры нового задания не корректны (см. текст задания). Добавление не возможно.");
-        return false;
-    }
-    //Проверка значений на корректность
-    //if (newTaskDate<now){
-    //    alert("Параметры нового задания не корректны (см. дату задания). Добавление не возможно. "+newTaskDate+"; "+now);
-    //    return false;
-    //}
+   if (dataNotCorrect(newTaskNum, newTaskTxt, newTaskDate)){return false}
+
     //Поиск таблицы со списком всех заданийй
     var tbody = document.getElementById('task_list').getElementsByTagName('TBODY')[0];
     //Создаем строку таблицы и добавляем ее
@@ -157,42 +167,44 @@ function addRow(){
     td1.innerHTML = newTaskNum;
     td2.innerHTML = newTaskTxt;
     td3.innerHTML = newTaskDate;
-    td4.innerHTML ="<button>Изменить</button>";
-    td5.innerHTML ="<button>Удалить</button>";
+    td4.innerHTML ="<button id=\"edit_rec_btn_"+newTaskNum+"\" value=\""+newTaskNum+"\" type=\"button\">Изменить</button>";
+    td5.innerHTML ="<button id=\"del_rec_btn_"+newTaskNum+"\" value=\""+newTaskNum+"\" type=\"button\">Удалить</button>";
     //Послать данные на сервер
-    sendAsyncPost('addtodb',newTaskNum,newTaskTxt,newTaskDate); //Добавление
+    sendAsyncPost('addtodb',newTaskNum,newTaskTxt,newTaskDate);
+    //Назначить события для кнопок удаления и редактирования
+    setEventsForBtns();
+    clearInputDataInForm();
     return true;
 }
 
 //Удаление записи из таблицы и БД
 function DelRecord(delBtn){
-    if (confirm("Действительно необходимо удалить задание N"+delBtn.value+"?")){
-        var numDelRec=delBtn.value;
+    var numDelRec=delBtn.value;                         //Номер удаляемого задания
+    if ((delBtn==null)||(delBtn.value<1)){return false}
+    if (confirm("Действительно необходимо удалить задание N"+numDelRec+"?")){
+        delBtn.value=0;
         delRow = delBtn.closest("tr");                  //Объект - удаляемая строка
         delRow.parentElement.removeChild(delRow);       //Удаление строки, вместе с кнопкой
         sendAsyncPost('dellfromdb',numDelRec,"0","0");  //Послать сигнал на удаление данных на сервер
+        return true;
     }
 }
 
 //Редактирование записи из таблицы и БД
 function EditRecord(editBtn){
    //Перенести содержимое из таблицы в поле для редактирования
-   if (editBtn!=null){
-       editRow = editBtn.closest("tr");
-       taskNum=editRow.children[0].innerHTML;
-       taskTxt=editRow.children[1].innerHTML;
-       taskDate=editRow.children[2].innerHTML;
-       //
-       document.getElementById("task_num").value=taskNum;
-       document.getElementById("task_txt").innerHTML=taskTxt;
-       document.getElementById("task_date").value=Date.parse(taskDate);
-       //Установить режим редактирования
-       setEditMode();
-   }
+   if (editBtn==null){return}
+   //Перенос значений из таблицы в форму
+   editRow = editBtn.closest("tr");
+   document.getElementById("task_num").value=editRow.children[0].innerHTML;
+   document.getElementById("task_txt").value=editRow.children[1].innerHTML;
+   document.getElementById("task_date").value=editRow.children[2].innerHTML;
+   //Установить режим редактирования
+   setEditMode();
 }
 
-//Назначение обработчика событий кнопкам удаления и редактирования записей
-window.onload = function() {
+//Назначить всем кнопкам редактирования и удаления обработчики событий
+function setEventsForBtns(){
     var btns = document.getElementsByTagName('button');
 	for (var i = 0; i < btns.length; ++i) {
 	    var btn=btns[i];
@@ -206,6 +218,11 @@ window.onload = function() {
             btn.addEventListener('click', function () { EditRecord(this); });
         }
 	}
+}
+
+//Назначение обработчика событий кнопкам удаления и редактирования записей
+window.onload = function() {
+    setEventsForBtns();    //Назначить обработчики событий для кнопок удаления и редактирования записей
 }
 
 

@@ -76,7 +76,7 @@
       <td th:text="${tableDB.taskContent}">...</td>
       <td th:text="${tableDB.recDate}">...</td>
       <td>
-      <button th:id="'edit_rec_btn_'+${tableDB.taskNum}" th:value="${tableDB.taskNum}" type="button" onclick="EditRecord()">Изменить</button>
+      <button th:id="'edit_rec_btn_'+${tableDB.taskNum}" th:value="${tableDB.taskNum}" type="button">Изменить</button>
 	  </td>
 	  <td>
       <button th:id="'del_rec_btn_'+${tableDB.taskNum}" th:value="${tableDB.taskNum}" type="button">Удалить</button>
